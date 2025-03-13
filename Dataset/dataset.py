@@ -53,3 +53,4 @@ upper_bound = min(Q3_NCP + 1.5 * IQR_NCP, 5)
 df_capped = df.copy()
 df_capped['NCP'] = df['NCP'].clip(lower=lower_bound, upper=upper_bound)  
 
+df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
