@@ -75,4 +75,12 @@ X_resampled, y_resampled = smote.fit_resample(X, y)
 from collections import Counter
 print("New class distribution:", Counter(y_resampled))
 
-df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
+correlation_threshold = 0.8
+strong_correlations = {}
+for col in correlation_matrix.columns:
+    strong_corrs = correlation_matrix[col][(correlation_matrix[col] > correlation_threshold) & (correlation_matrix[col] < 1)].index.tolist()
+    if strong_corrs:
+        strong_correlations[col] = strong_corrs
+strong_correlations
+
+
