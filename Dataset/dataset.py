@@ -52,4 +52,26 @@ lower_bound = max(Q1_NCP - 1.5 * IQR_NCP, 1)
 upper_bound = min(Q3_NCP + 1.5 * IQR_NCP, 5) 
 df_capped = df.copy()
 df_capped['NCP'] = df['NCP'].clip(lower=lower_bound, upper=upper_bound)  
+df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
+
+class_distribution = df['NObeyesdad'].value_counts(normalize=True) * 100
+print(class_distribution)
+
+%pip install imblearn
+from imblearn.over_sampling import SMOTE
+categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+categorical_cols.remove('NObeyesdad') 
+
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le 
+target_col = "NObeyesdad"
+X = df.drop(columns=[target_col])
+y = df[target_col]
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
+from collections import Counter
+print("New class distribution:", Counter(y_resampled))
 
