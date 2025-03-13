@@ -42,3 +42,14 @@ outliers_iqr = ((df_numeric < (Q1 - 1.5 * IQR)) | (df_numeric > (Q3 + 1.5 * IQR)
 
 print("Outliers détectés par la méthode IQR :")
 print(outliers_iqr)
+
+df = df.drop_duplicates()
+print(df.shape)  
+Q1_NCP = df['NCP'].quantile(0.25)
+Q3_NCP = df['NCP'].quantile(0.75)
+IQR_NCP = Q3_NCP - Q1_NCP
+lower_bound = max(Q1_NCP - 1.5 * IQR_NCP, 1) 
+upper_bound = min(Q3_NCP + 1.5 * IQR_NCP, 5) 
+df_capped = df.copy()
+df_capped['NCP'] = df['NCP'].clip(lower=lower_bound, upper=upper_bound)  
+
