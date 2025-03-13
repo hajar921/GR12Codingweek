@@ -55,7 +55,7 @@ df_capped['NCP'] = df['NCP'].clip(lower=lower_bound, upper=upper_bound)
 df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
 
 class_distribution = df['NObeyesdad'].value_counts(normalize=True) * 100
-print(class_distribution)
+print(class_distribution)  
 
 %pip install imblearn
 from imblearn.over_sampling import SMOTE
