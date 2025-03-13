@@ -75,3 +75,4 @@ X_resampled, y_resampled = smote.fit_resample(X, y)
 from collections import Counter
 print("New class distribution:", Counter(y_resampled))
 
+df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
