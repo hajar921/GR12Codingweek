@@ -7,5 +7,5 @@ from sklearn.preprocessing import LabelEncoder
 import shap
 
 
-df=pd.read_csv(r"C:\Users\kh\Downloads\obesity.csv")
+df=pd.read_csv(r"C:\Users\Admin\Documents\GitHub\GR12Codingweek\Dataset\ObesityDataSet_raw_and_data_sinthetic.csv")
 df.head()
