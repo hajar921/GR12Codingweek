@@ -57,7 +57,6 @@ df_filtered = df[(df['NCP'] >= 1) & (df['NCP'] <= 5)]
 class_distribution = df['NObeyesdad'].value_counts(normalize=True) * 100
 print(class_distribution)  
 
-%pip install imblearn
 from imblearn.over_sampling import SMOTE
 categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
 categorical_cols.remove('NObeyesdad') 
@@ -107,14 +106,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 X_train.shape, X_test.shape, y_train.shape, y_test.shape
 
-%pip install xgboost
-%pip install lightgbm
-import pandas as pd
-import numpy as np
-
-import shap
-import matplotlib.pyplot as plt
-import seaborn as sns
 import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -167,28 +158,3 @@ elif best_model_name == "XGBoost":
     feature_importance = best_model.feature_importances_
 elif best_model_name == "LightGBM":
     feature_importance = best_model.feature_importances_
-    
-def optimize_memory(df):
-    for col in df.columns:
-        col_type = df[col].dtype
-        if pd.api.types.is_integer_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='integer')
-        elif pd.api.types.is_float_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='float')
-        elif pd.api.types.is_object_dtype(col_type):
-            df[col] = df[col].astype('category')
-    
-    return df
-
-def demonstrate_memory_optimization(df):
-    before_memory = df.memory_usage(deep=True)
-    print("Memory usage before optimization:")
-    print(before_memory)
-    df_optimized = optimize_memory(df)
-    after_memory = df_optimized.memory_usage(deep=True)
-    print("\nMemory usage after optimization:")
-    print(after_memory)
-    return before_memory, after_memory
-before_memory, after_memory = demonstrate_memory_optimization(df)
-
-before_memory, after_memory
