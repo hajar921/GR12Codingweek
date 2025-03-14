@@ -83,4 +83,27 @@ for col in correlation_matrix.columns:
         strong_correlations[col] = strong_corrs
 strong_correlations
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+import pandas as pd
+
+df=pd.read_csv(r"C:\Users\kh\Downloads\obesity.csv")
+df.head()
+
+X = df.drop(columns=['NObeyesdad']).copy()  
+y = df['NObeyesdad']
+categorical_cols = X.select_dtypes(include=['object']).columns
+label_encoders = {}
+
+for col in categorical_cols:
+    le = LabelEncoder()
+    X.loc[:, col] = le.fit_transform(X[col]) 
+    label_encoders[col] = le  
+scaler = StandardScaler()
+X.loc[:, X.select_dtypes(include=['number']).columns] = scaler.fit_transform(X.select_dtypes(include=['number']))
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+
+X_train.shape, X_test.shape, y_train.shape, y_test.shape
 
