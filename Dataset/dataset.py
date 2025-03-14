@@ -105,11 +105,3 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 
 X_train.shape, X_test.shape, y_train.shape, y_test.shape
-
-import streamlit as st
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from sklearn.metrics import accuracy_score, classification_report
