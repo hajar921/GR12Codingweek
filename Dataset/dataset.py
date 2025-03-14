@@ -140,3 +140,27 @@ before_memory, after_memory = demonstrate_memory_optimization(df)
 before_memory, after_memory
 =======
 >>>>>>> 3c088603f5e3423d525efd443fc2e8561738e0ae
+def optimize_memory(df):
+    for col in df.columns:
+        col_type = df[col].dtype
+        if pd.api.types.is_integer_dtype(col_type):
+            df[col] = pd.to_numeric(df[col], downcast='integer')
+        elif pd.api.types.is_float_dtype(col_type):
+            df[col] = pd.to_numeric(df[col], downcast='float')
+        elif pd.api.types.is_object_dtype(col_type):
+            df[col] = df[col].astype('category')
+    
+    return df
+
+def demonstrate_memory_optimization(df):
+    before_memory = df.memory_usage(deep=True)
+    print("Memory usage before optimization:")
+    print(before_memory)
+    df_optimized = optimize_memory(df)
+    after_memory = df_optimized.memory_usage(deep=True)
+    print("\nMemory usage after optimization:")
+    print(after_memory)
+    return before_memory, after_memory
+before_memory, after_memory = demonstrate_memory_optimization(df)
+
+before_memory, after_memory
