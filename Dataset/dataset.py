@@ -105,6 +105,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 
 X_train.shape, X_test.shape, y_train.shape, y_test.shape
+<<<<<<< HEAD
 
 import streamlit as st
 from sklearn.model_selection import train_test_split
@@ -137,3 +138,5 @@ def demonstrate_memory_optimization(df):
 before_memory, after_memory = demonstrate_memory_optimization(df)
 
 before_memory, after_memory
+=======
+>>>>>>> 3c088603f5e3423d525efd443fc2e8561738e0ae
