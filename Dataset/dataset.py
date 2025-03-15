@@ -6,7 +6,7 @@ from scipy.stats import zscore
 from sklearn.preprocessing import LabelEncoder
 import shap
 
-df=pd.read_csv(r"C:\Users\Admin\Documents\GitHub\GR12Codingweek\Dataset\ObesityDataSet_raw_and_data_sinthetic.csv")
+df=pd.read_csv("ObesityDataSet_raw_and_data_sinthetic.csv")
 df.head()
 print(df.head())
 print(df.info())
@@ -74,93 +74,15 @@ X_resampled, y_resampled = smote.fit_resample(X, y)
 from collections import Counter
 print("New class distribution:", Counter(y_resampled))
 
+
+df_numeric = df.select_dtypes(include=['number'])
+correlation_matrix = df_numeric.corr()
+
 correlation_threshold = 0.8
 strong_correlations = {}
 for col in correlation_matrix.columns:
     strong_corrs = correlation_matrix[col][(correlation_matrix[col] > correlation_threshold) & (correlation_matrix[col] < 1)].index.tolist()
     if strong_corrs:
         strong_correlations[col] = strong_corrs
-strong_correlations
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-
-import pandas as pd
-
-df=pd.read_csv(r"C:\Users\kh\Downloads\obesity.csv")
-df.head()
-
-X = df.drop(columns=['NObeyesdad']).copy()  
-y = df['NObeyesdad']
-categorical_cols = X.select_dtypes(include=['object']).columns
-label_encoders = {}
-
-for col in categorical_cols:
-    le = LabelEncoder()
-    X.loc[:, col] = le.fit_transform(X[col]) 
-    label_encoders[col] = le  
-scaler = StandardScaler()
-X.loc[:, X.select_dtypes(include=['number']).columns] = scaler.fit_transform(X.select_dtypes(include=['number']))
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-
-
-X_train.shape, X_test.shape, y_train.shape, y_test.shape
-<<<<<<< HEAD
-
-import streamlit as st
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from sklearn.metrics import accuracy_score, classification_report
-def optimize_memory(df):
-    for col in df.columns:
-        col_type = df[col].dtype
-        if pd.api.types.is_integer_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='integer')
-        elif pd.api.types.is_float_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='float')
-        elif pd.api.types.is_object_dtype(col_type):
-            df[col] = df[col].astype('category')
-    
-    return df
-
-def demonstrate_memory_optimization(df):
-    before_memory = df.memory_usage(deep=True)
-    print("Memory usage before optimization:")
-    print(before_memory)
-    df_optimized = optimize_memory(df)
-    after_memory = df_optimized.memory_usage(deep=True)
-    print("\nMemory usage after optimization:")
-    print(after_memory)
-    return before_memory, after_memory
-before_memory, after_memory = demonstrate_memory_optimization(df)
-
-before_memory, after_memory
-=======
->>>>>>> 3c088603f5e3423d525efd443fc2e8561738e0ae
-def optimize_memory(df):
-    for col in df.columns:
-        col_type = df[col].dtype
-        if pd.api.types.is_integer_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='integer')
-        elif pd.api.types.is_float_dtype(col_type):
-            df[col] = pd.to_numeric(df[col], downcast='float')
-        elif pd.api.types.is_object_dtype(col_type):
-            df[col] = df[col].astype('category')
-    
-    return df
-
-def demonstrate_memory_optimization(df):
-    before_memory = df.memory_usage(deep=True)
-    print("Memory usage before optimization:")
-    print(before_memory)
-    df_optimized = optimize_memory(df)
-    after_memory = df_optimized.memory_usage(deep=True)
-    print("\nMemory usage after optimization:")
-    print(after_memory)
-    return before_memory, after_memory
-before_memory, after_memory = demonstrate_memory_optimization(df)
-
-before_memory, after_memory
+if strong_correlations=={}:
+    print("no strong correlation detected")
