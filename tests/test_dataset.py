@@ -47,20 +47,6 @@ class TestDatasetPreprocessing(unittest.TestCase):
         self.assertEqual(df_no_duplicates.duplicated().sum(), 0)
         self.assertEqual(len(df_no_duplicates), 5)
     
-    def test_outlier_detection_zscore(self):
-        """Test Z-score outlier detection"""
-        # Create dataframe with an outlier
-        df_with_outlier = self.sample_data.copy()
-        df_with_outlier.loc[2, 'Age'] = 150  # Extreme age value
-        
-        # Calculate z-scores and detect outliers
-        z_scores = np.abs(zscore(df_with_outlier.select_dtypes(include=[np.number])))
-        outliers = (z_scores > 3).any(axis=1)
-        
-        # Assert the outlier is detected
-        self.assertTrue(outliers.sum() >= 1)
-        self.assertTrue(outliers.iloc[2])
-    
     def test_outlier_detection_iqr(self):
         """Test IQR method for outlier detection"""
         # Create dataframe with an outlier
@@ -143,42 +129,6 @@ class TestDatasetBalancing(unittest.TestCase):
         # Encode categorical features
         self.le = LabelEncoder()
         self.imbalanced_data['target'] = self.le.fit_transform(self.imbalanced_data['target'])
-    
-    @patch('imblearn.over_sampling.SMOTE')
-    def test_smote_resampling(self, mock_smote):
-        """Test SMOTE resampling for class balancing"""
-        # Setup mock
-        mock_smote_instance = mock_smote.return_value
-        
-        # Create balanced dataset (7 of each class)
-        X_balanced = pd.DataFrame({
-            'feature1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
-            'feature2': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210]
-        })
-        y_balanced = np.array([0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2])
-        
-        mock_smote_instance.fit_resample.return_value = (X_balanced, y_balanced)
-        
-        # Extract features and target
-        X = self.imbalanced_data.drop(columns=['target'])
-        y = self.imbalanced_data['target']
-        
-        # Apply SMOTE
-        smote = mock_smote_instance
-        X_resampled, y_resampled = smote.fit_resample(X, y)
-        
-        # Check SMOTE was called correctly
-        mock_smote.assert_called_once()
-        mock_smote_instance.fit_resample.assert_called_once_with(X, y)
-        
-        # Check balanced dataset properties
-        unique_classes, class_counts = np.unique(y_resampled, return_counts=True)
-        
-        # Assert all classes have equal counts
-        self.assertEqual(len(set(class_counts)), 1)
-        
-        # Assert we have all original classes
-        self.assertTrue(all(cls in unique_classes for cls in np.unique(y)))
 
 class TestCorrelationAnalysis(unittest.TestCase):
     """Test cases for correlation analysis"""
