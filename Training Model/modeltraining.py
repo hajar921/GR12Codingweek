@@ -1,111 +1,148 @@
-import streamlit as st
 import pandas as pd
+import numpy as np
+import shap
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
+from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score, classification_report
-import joblib
+from collections import Counter
 import os
-df = pd.read_csv("ObesityDataSet_raw_and_data_sinthetic.csv")
-df.head()
-
-categorical_features = ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC', 'MTRANS']
-label_encoders = {}
-for col in categorical_features:
-    le = LabelEncoder()
-    df[col] = le.fit_transform(df[col])
-    label_encoders[col] = le
+# Constants
+MODEL_PATH = "obesity_model.joblib"
+SCALER_PATH = "obesity_scaler.joblib"
+ENCODERS_PATH = "obesity_encoders.joblib"
 
 
-le_target = LabelEncoder()
-df['NObeyesdad'] = le_target.fit_transform(df['NObeyesdad'])
-X = df.drop(columns=['NObeyesdad', 'Height', 'Weight']) 
-y = df['NObeyesdad']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Function to train and save model
+def train_and_save_model(file_path):
+    """
+    Train models and save them to disk for later use.
+    This should be run before deploying the Streamlit app.
+    """
+    print("Loading and preprocessing dataset...")
+    # Load dataset
+    df = pd.read_csv(file_path)
 
-scaler = StandardScaler()
-numerical_features = ['Age', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
-X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
-X_test[numerical_features] = scaler.transform(X_test[numerical_features])
-models = {
-    "Random Forest": RandomForestClassifier(),
-    "XGBoost": XGBClassifier(),
-    "LightGBM": LGBMClassifier()}
+    # Display class distribution
+    target_col = 'NObeyesdad'
+    class_distribution = df[target_col].value_counts()
+    print("Class Distribution:\n", class_distribution)
 
-model_performance = {}
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    model_performance[name] = accuracy
-    print(f"Model: {name}")
-    print(classification_report(y_test, y_pred))
-    print("-" * 50)
-best_model_name = max(model_performance, key=model_performance.get)
-best_model = models[best_model_name]
+    # Prepare for encoding
+    categorical_features = ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC',
+                            'MTRANS']
 
-print(f"Best Model: {best_model_name} with Accuracy: {model_performance[best_model_name]:.4f}")
-if best_model_name == "Random Forest":
-    feature_importance = best_model.feature_importances_
-elif best_model_name == "XGBoost":
-    feature_importance = best_model.feature_importances_
-elif best_model_name == "LightGBM":
-    feature_importance = best_model.feature_importances_
+    # Encode categorical columns
+    label_encoders = {}
+    for col in categorical_features:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col])
+        label_encoders[col] = le
 
-save_folder = "Training Model"
-os.makedirs(save_folder, exist_ok=True)  
+    # Prepare data for SMOTE
+    X = df.drop(columns=[target_col])
+    y = df[target_col]
+
+    # Apply SMOTE to balance classes
+    smote = SMOTE(random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+
+    print("New class distribution after SMOTE:", Counter(y_resampled))
+
+    # Create a new balanced dataframe
+    balanced_df = X_resampled.copy()
+    balanced_df[target_col] = y_resampled
+
+    print("Data preprocessing complete!")
+
+    # Use the balanced dataset
+    df = balanced_df
+
+    print("Preparing data for modeling...")
+
+    # Encode target variable
+    le_target = LabelEncoder()
+    df['NObeyesdad'] = le_target.fit_transform(df['NObeyesdad'])
+
+    # Define features and target
+    X = df.drop(columns=['NObeyesdad', 'Height', 'Weight'])  # Removing height & weight to prevent data leakage
+    y = df['NObeyesdad']
+
+    # Get original categories for display
+    obesity_categories = le_target.classes_
+
+    # Split dataset
+    print("Splitting dataset...")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Standardize numerical features
+    numerical_features = ['Age', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
+    scaler = StandardScaler()
+    X_train[numerical_features] = scaler.fit_transform(X_train[numerical_features])
+    X_test[numerical_features] = scaler.transform(X_test[numerical_features])
+
+    # Train models
+    print("Training models...")
+    models = {
+        "LightGBM": LGBMClassifier(random_state=42),
+        "XGBoost": XGBClassifier(random_state=42),
+        "Random Forest": RandomForestClassifier(random_state=42)
+    }
+
+    # Store performance
+    model_performance = {}
+    trained_models = {}
+
+    for name, model in models.items():
+        print(f"Training {name}...")
+        model.fit(X_train, y_train)
+        trained_models[name] = model
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        model_performance[name] = accuracy
+        print(f"{name} Accuracy: {accuracy:.4f}")
+        print(classification_report(y_test, y_pred))
+
+    # Select best model
+    best_model_name = max(model_performance, key=model_performance.get)
+    best_model = trained_models[best_model_name]
+    print(f"Best model: {best_model_name} with accuracy {model_performance[best_model_name]:.4f}")
+
+    # Create SHAP explainer
+    print("Creating SHAP explainer...")
+    explainer = shap.Explainer(best_model, X_train)
+
+    # Create dictionary of all necessary objects
+    model_data = {
+        "feature_names": X.columns.tolist(),
+        "numerical_features": numerical_features,
+        "categorical_features": categorical_features,
+        "label_encoders": label_encoders,
+        "le_target": le_target,
+        "scaler": scaler,
+        "trained_models": trained_models,
+        "best_model_name": best_model_name,
+        "best_model": best_model,
+        "model_performance": model_performance,
+        "explainer": explainer,
+        "obesity_categories": obesity_categories
+    }
+
+    # Save model and related objects
+    print(f"Saving model to {MODEL_PATH}...")
+    save_folder = "Training Model"
+    os.makedirs(save_folder, exist_ok=True)  
 
 
-model_path = os.path.join(save_folder, "obesity_model.joblib")
-joblib.dump(best_model, model_path)
+    model_path = os.path.join(save_folder, "obesity_model.joblib")
+    joblib.dump(best_model, model_path)
 
+    print("Model training and saving complete!")
+    return model_data
 
-import shap
-import joblib
-
-
-explainer = shap.TreeExplainer(best_model)
-shap_values = explainer.shap_values(X_test)
-
-shap.summary_plot(shap_values, X_test)
-
-
-for i in range (shap_values.shape[2]):
-    print(f"Shape of SHAP values for class {i}: {shap_values[:,:,i].shape}")
-    shap.summary_plot(shap_values[:,:,i], X_test)
-    shap.dependence_plot('Age', shap_values[:,:,i], X_test)
-
-
-MODEL_PATH = "best_model.pkl"
-SCALER_PATH = "scaler.pkl"
-ENCODERS_PATH = "label_encoders.pkl"
-joblib.dump(best_model, MODEL_PATH)
-joblib.dump(scaler, SCALER_PATH)
-joblib.dump(label_encoders, ENCODERS_PATH)
-
-X.shape
-print("X_test columns:", X_test.columns)
-    obesity_categories = df['NObeyesdad'].unique().tolist()
-    
-model_data = { "feature_names": X.columns.tolist(),"numerical_features": numerical_features,"categorical_features": categorical_features,"label_encoders": label_encoders,"le_target": le_target,"scaler": scaler,"trained_models": models,"best_model_name": best_model_name,
- "best_model": best_model,"model_performance": model_performance, "explainer": explainer, "obesity_categories": obesity_categories}
-
-explainer = shap.Explainer(best_model, X_train)
-shap_values = explainer(X_test, check_additivity=False)
-shap_values = shap_values[0] 
-if list(X_test.columns) == list(shap_values.feature_names):
-    print("The features in X_test and shap_values match.")
-else:
-    print("There is a mismatch between X_test and shap_values features.")
-    print("X_test columns:", X_test.columns)
-    print("SHAP feature names:", shap_values.feature_names)
-
-print(f"X_train shape: {X_train.shape}")
-print(f"X_test shape: {X_test.shape}")
-print("Features used in the model:", X_train.columns)
-features_used_in_model = ['Age', 'Gender', 'family_history_with_overweight', 'FAVC', 'FCVC', 'NCP', 
-                          'CAEC', 'SMOKE', 'CH2O', 'SCC', 'FAF', 'TUE', 'CALC', 'MTRANS']
-
-X_test_filtered = X_test[features_used_in_model]
+file_path = "obesity_data.csv"
+train_and_save_model(file_path)

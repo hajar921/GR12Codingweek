@@ -110,3 +110,8 @@ def demonstrate_memory_optimization(df):
 before_memory, after_memory = demonstrate_memory_optimization(df)
 
 before_memory, after_memory
+
+import pandas as pd
+
+df.to_csv("obesity_data.csv", index=False)  # Save data as CSV
+print("Dataset saved: 'obesity_data.csv'")
