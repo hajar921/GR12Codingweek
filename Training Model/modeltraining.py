@@ -84,3 +84,28 @@ ENCODERS_PATH = "label_encoders.pkl"
 joblib.dump(best_model, MODEL_PATH)
 joblib.dump(scaler, SCALER_PATH)
 joblib.dump(label_encoders, ENCODERS_PATH)
+
+X.shape
+print("X_test columns:", X_test.columns)
+    obesity_categories = df['NObeyesdad'].unique().tolist()
+    
+model_data = { "feature_names": X.columns.tolist(),"numerical_features": numerical_features,"categorical_features": categorical_features,"label_encoders": label_encoders,"le_target": le_target,"scaler": scaler,"trained_models": models,"best_model_name": best_model_name,
+ "best_model": best_model,"model_performance": model_performance, "explainer": explainer, "obesity_categories": obesity_categories}
+
+explainer = shap.Explainer(best_model, X_train)
+shap_values = explainer(X_test, check_additivity=False)
+shap_values = shap_values[0] 
+if list(X_test.columns) == list(shap_values.feature_names):
+    print("The features in X_test and shap_values match.")
+else:
+    print("There is a mismatch between X_test and shap_values features.")
+    print("X_test columns:", X_test.columns)
+    print("SHAP feature names:", shap_values.feature_names)
+
+print(f"X_train shape: {X_train.shape}")
+print(f"X_test shape: {X_test.shape}")
+print("Features used in the model:", X_train.columns)
+features_used_in_model = ['Age', 'Gender', 'family_history_with_overweight', 'FAVC', 'FCVC', 'NCP', 
+                          'CAEC', 'SMOKE', 'CH2O', 'SCC', 'FAF', 'TUE', 'CALC', 'MTRANS']
+
+X_test_filtered = X_test[features_used_in_model]
