@@ -6,7 +6,9 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from sklearn.metrics import accuracy_score, classification_report
-df = pd.read_csv(r"C:\Users\E N V Y\Downloads\estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip")
+import joblib
+import os
+df = pd.read_csv("ObesityDataSet_raw_and_data_sinthetic.csv")
 df.head()
 
 categorical_features = ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC', 'MTRANS']
@@ -51,3 +53,10 @@ elif best_model_name == "XGBoost":
     feature_importance = best_model.feature_importances_
 elif best_model_name == "LightGBM":
     feature_importance = best_model.feature_importances_
+
+save_folder = "Training Model"  # Change this to your desired folder
+os.makedirs(save_folder, exist_ok=True)  # Ensure the folder exists
+
+# Save the model
+model_path = os.path.join(save_folder, "obesity_model.joblib")
+joblib.dump(best_model, model_path)
