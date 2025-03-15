@@ -25,7 +25,9 @@ In the file notebooks/eda.ipynb, we conducted the following analysis:
 - Missing Values: Identification and strategies for handling missing values.
 - Outliers: Detection and treatment of outliers.
 - Class Imbalance:
-  - The dataset contains seven classes with a relatively balanced distribution (\~12%-15% per class).
+  - The dataset contains seven obesity levels, with class distributions ranging between 12.88% and 16.63%, making it relatively balanced.
+  However, to ensure all classes had sufficient representation, SMOTE (Synthetic Minority Over-sampling Technique) was applied.
+Impact: SMOTE improved recall for minority classes without significantly affecting overall accuracy.
   - Documentation of strategies to handle imbalance (oversampling, undersampling, class weighting).
 - Correlation Between Variables: Identification and treatment of highly correlated variables.
 - Imbalanced data was addressed using SMOTE (Synthetic Minority Over-sampling Technique) to improve the model’s ability to detect fraud.
@@ -43,7 +45,12 @@ We tested and compared the performance of the following models:
 - CatBoost Classifier
 
 ### Evaluation Metrics
+Best Performing Model:
 
+The Random Forest Classifier achieved the highest accuracy (86.29%), followed by XGBoost (86.1%) and LightGBM (85.3%).
+Justification:
+Random Forest provided the best balance between performance and generalization.
+Despite requiring more memory, it handled imbalanced data better and had stronger predictive accuracy.
 Models are compared using:
 
 - ROC-AUC
@@ -70,7 +77,13 @@ To optimize memory usage, a function optimize_memory(df) has been developed in d
  As a result, memory usage was reduced from 1.2 MB to 87.9 KB, significantly enhancing efficiency without compromising accuracy.
 
 ## Explainability with SHAP
+Top Medical Features Affecting Predictions (SHAP Analysis):
 
+Weight & BMI (strongest predictor)
+Caloric intake & eating frequency
+Physical activity levels
+Family history of obesity
+Water consumption (CH2O variable)
 We integrate SHAP explanations to interpret the model:
 
 - Generation of SHAP visualizations.
@@ -90,7 +103,13 @@ The interface allows:
 - A CI/CD workflow is implemented via GitHub Actions to automate testing and continuous integration.
 
 ## Selected Task for Documentation: Memory Optimization Function
+Insights from AI-Powered Prompt Engineering
+Initially, we wrote a simple function to convert float64 → float32 and int64 → int32, but it lacked:
 
+Logging to show before/after memory usage.
+Handling for categorical variables and missing values.
+Flexibility in precision levels for conversions.
+To refine it, we used ChatGPT & Copilot, iterating with different prompts.
 ### Prompts Used
 
 We utilized AI tools (Copilot, ChatGPT) to generate and refine the memory optimization function. Below are the exact prompts used:
@@ -107,6 +126,12 @@ We utilized AI tools (Copilot, ChatGPT) to generate and refine the memory optimi
    *Result:*\
    A more robust function with logging and better error handling, preserving categorical variables.
 
+How AI Helped Improve the Function:
+
+Better Type Handling: ChatGPT suggested converting categorical variables properly.
+Logging: AI recommended adding before/after memory tracking.
+Precision Control: ChatGPT provided ideas for precision-based conversions.
+Error Handling: AI ensured missing values wouldn't cause crashes.
 ### Effectiveness and Potential Improvements
 
 - The prompts effectively generated a useful function but required refinements for better usability.
