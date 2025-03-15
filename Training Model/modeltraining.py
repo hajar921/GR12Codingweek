@@ -54,9 +54,33 @@ elif best_model_name == "XGBoost":
 elif best_model_name == "LightGBM":
     feature_importance = best_model.feature_importances_
 
-save_folder = "Training Model"  # Change this to your desired folder
-os.makedirs(save_folder, exist_ok=True)  # Ensure the folder exists
+save_folder = "Training Model"
+os.makedirs(save_folder, exist_ok=True)  
 
-# Save the model
+
 model_path = os.path.join(save_folder, "obesity_model.joblib")
 joblib.dump(best_model, model_path)
+
+
+import shap
+import joblib
+
+
+explainer = shap.TreeExplainer(best_model)
+shap_values = explainer.shap_values(X_test)
+
+shap.summary_plot(shap_values, X_test)
+
+
+for i in range (shap_values.shape[2]):
+    print(f"Shape of SHAP values for class {i}: {shap_values[:,:,i].shape}")
+    shap.summary_plot(shap_values[:,:,i], X_test)
+    shap.dependence_plot('Age', shap_values[:,:,i], X_test)
+
+
+MODEL_PATH = "best_model.pkl"
+SCALER_PATH = "scaler.pkl"
+ENCODERS_PATH = "label_encoders.pkl"
+joblib.dump(best_model, MODEL_PATH)
+joblib.dump(scaler, SCALER_PATH)
+joblib.dump(label_encoders, ENCODERS_PATH)
