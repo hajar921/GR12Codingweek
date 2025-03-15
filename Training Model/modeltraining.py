@@ -1,11 +1,12 @@
 import streamlit as st
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from sklearn.metrics import accuracy_score, classification_report
-df = pd.read_csv(r"C:\Users\kh\Downloads\obesity.csv")
+df = pd.read_csv(r"C:\Users\E N V Y\Downloads\estimation+of+obesity+levels+based+on+eating+habits+and+physical+condition.zip")
 df.head()
 
 categorical_features = ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC', 'MTRANS']
