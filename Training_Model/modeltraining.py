@@ -14,8 +14,8 @@ from collections import Counter
 
 # Constants
 MODEL_PATH = "Training_Model/obesity_model.joblib"
-SCALER_PATH = "Training_Model/obesity_scaler.joblib"
-ENCODERS_PATH = "Training_Model/obesity_encoders.joblib"
+SCALER_PATH = "obesity_scaler.joblib"
+ENCODERS_PATH = "obesity_encoders.joblib"
 
 
 # Function to clean and preprocess data
@@ -48,10 +48,9 @@ def clean_and_preprocess_data(file_path):
     class_distribution = df[target_col].value_counts()
     print("Class Distribution:\n", class_distribution)
 
-    # Identify categorical columns
+    # Apply SMOTE to balance classes
     categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
-    if target_col in categorical_cols:
-        categorical_cols.remove(target_col)
+    categorical_cols.remove(target_col)
 
     # Encode categorical columns
     label_encoders = {}
@@ -85,17 +84,15 @@ def train_and_save_model(file_path):
     This should be run before deploying the Streamlit app.
     """
     # Clean and preprocess data first
-    balanced_df, label_encoders = clean_and_preprocess_data(file_path)
+    balanced_df, initial_encoders = clean_and_preprocess_data(file_path)
     df = balanced_df  # Use the balanced dataset
 
     print("Preparing data for modeling...")
-    # Define categorical features - these should match what's in your dataset
+    # Encode categorical variables (already done in cleaning step)
     categorical_features = ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC',
-                          'MTRANS']
-    
-    # Print encoders to debug
-    print(f"Label encoders: {label_encoders.keys()}")
-    
+                            'MTRANS']
+    label_encoders = initial_encoders  # Use encoders from the cleaning step
+
     # Encode target variable
     le_target = LabelEncoder()
     df['NObeyesdad'] = le_target.fit_transform(df['NObeyesdad'])
@@ -153,7 +150,7 @@ def train_and_save_model(file_path):
         "feature_names": X.columns.tolist(),
         "numerical_features": numerical_features,
         "categorical_features": categorical_features,
-        "label_encoders": label_encoders,  # This is where the label encoders are stored
+        "label_encoders": label_encoders,
         "le_target": le_target,
         "scaler": scaler,
         "trained_models": trained_models,
@@ -165,9 +162,10 @@ def train_and_save_model(file_path):
     }
 
     # Save model and related objects
+    print("before Label encoders in data_dict:", model_data["label_encoders"].keys())
     print(f"Saving model to {MODEL_PATH}...")
     joblib.dump(model_data, MODEL_PATH)
-
+    
     print("Model training and saving complete!")
     return model_data
 
@@ -176,3 +174,12 @@ if __name__ == "__main__":
     # The path should be adjusted to match your environment
     file_path = "obesity_data.csv"
     train_and_save_model(file_path)
+
+print("*************************************************")
+def load_saved_model():
+    # Load all saved objects
+    model_data = joblib.load(MODEL_PATH)
+    return model_data
+data_dict=load_saved_model()
+print("Label encoders in data_dict:", data_dict["label_encoders"].keys())
+print(load_saved_model())   
