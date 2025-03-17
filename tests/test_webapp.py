@@ -4,13 +4,23 @@ import unittest
 import pandas as pd
 import numpy as np
 from unittest.mock import patch, MagicMock
+
+# Mock the streamlit module before importing the webapp
+sys.modules['streamlit'] = MagicMock()
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
 import matplotlib.pyplot as plt
 
 # Add parent directory to path to import the webapp module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from APP.webapp import encode_user_input, generate_prediction, get_feature_description
 
-# Remove the perform_shap_analysis import since it requires streamlit
+# Check if shap is imported in the webapp module, if so, mock it
+if 'shap' not in sys.modules:
+    sys.modules['shap'] = MagicMock()
+
+# Now try importing from APP.webapp
+from APP.webapp import encode_user_input, generate_prediction, get_feature_description
+# We'll mock perform_shap_analysis later
 
 class TestObesityPredictionApp(unittest.TestCase):
     
@@ -142,7 +152,7 @@ class TestObesityPredictionApp(unittest.TestCase):
         self.assertEqual(input_df["Age"].values[0], 95)
         self.assertEqual(input_df["FCVC"].values[0], 3.5)
 
-    # Remove the test_shap_analysis method that uses streamlit mocks
+    # We're not testing the perform_shap_analysis function that requires streamlit
 
     def test_multiple_predictions(self):
         """Test that the model can handle multiple predictions with different inputs"""
@@ -163,10 +173,6 @@ class TestObesityPredictionApp(unittest.TestCase):
             "CALC": "Frequently",
             "MTRANS": "Automobile"
         }
-        
-        # Update mock model to return different prediction for second input
-        original_predict = self.mock_data_dict["best_model"].predict
-        original_predict_proba = self.mock_data_dict["best_model"].predict_proba
         
         # Process first input
         input_df1 = encode_user_input(self.user_input, self.mock_data_dict)
